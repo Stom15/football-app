@@ -1,37 +1,27 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+const menuScreen = document.getElementById("menuScreen");
+const gameScreen = document.getElementById("gameScreen");
+const teamSelect = document.getElementById("teamSelect");
+const startBtn = document.getElementById("startBtn");
+const homeNameEl = document.getElementById("homeName");
+const awayNameEl = document.getElementById("awayName");
 const homeScoreEl = document.getElementById("homeScore");
 const awayScoreEl = document.getElementById("awayScore");
 const timerEl = document.getElementById("timer");
 
 const keys = {};
-
 const pitch = {
   width: canvas.width,
   height: canvas.height,
   goalHeight: 220,
 };
 
-const game = {
-  matchRunning: true,
-  timeLeft: 90,
-  homeScore: 0,
-  awayScore: 0,
-  lastTimestamp: 0,
-};
-
-const ball = {
-  x: pitch.width / 2,
-  y: pitch.height / 2,
-  radius: 10,
-  vx: 0,
-  vy: 0,
-};
-
-const teams = {
-  home: {
+const clubs = [
+  {
     name: "Real Madrid",
+    short: "RM",
     color: "#3ea6ff",
     roster: [
       "Vinícius Jr.",
@@ -44,8 +34,9 @@ const teams = {
       "Rúben Dias",
     ],
   },
-  away: {
+  {
     name: "Manchester City",
+    short: "MCI",
     color: "#ff5f5f",
     roster: [
       "Erling Haaland",
@@ -58,6 +49,47 @@ const teams = {
       "Joško Gvardiol",
     ],
   },
+  {
+    name: "Arsenal",
+    short: "ARS",
+    color: "#f1c40f",
+    roster: [
+      "Bukayo Saka",
+      "Martin Ødegaard",
+      "Declan Rice",
+      "Gabriel Martinelli",
+      "Leandro Trossard",
+      "William Saliba",
+      "Ben White",
+      "Riccardo Calafiori",
+    ],
+  },
+  {
+    name: "Liverpool",
+    short: "LIV",
+    color: "#d81d3d",
+    roster: [
+      "Mohamed Salah",
+      "Luis Díaz",
+      "Darwin Núñez",
+      "Alexis Mac Allister",
+      "Dominik Szoboszlai",
+      "Virgil van Dijk",
+      "Trent Alexander-Arnold",
+      "Ibrahima Konaté",
+    ],
+  },
+];
+
+let selectedClub = null;
+let gameData = null;
+
+const ball = {
+  x: pitch.width / 2,
+  y: pitch.height / 2,
+  radius: 10,
+  vx: 0,
+  vy: 0,
 };
 
 const players = [];
@@ -70,7 +102,62 @@ function distance(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
-function buildPlayers() {
+function renderTeams() {
+  teamSelect.innerHTML = "";
+  clubs.forEach((club) => {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "team-card";
+    card.innerHTML = `
+      <div class="team-badge" style="background:${club.color};">${club.short}</div>
+      <h3>${club.name}</h3>
+      <p>Elite Squad</p>
+    `;
+
+    card.addEventListener("click", () => {
+      document.querySelectorAll(".team-card").forEach((btn) => btn.classList.remove("selected"));
+      card.classList.add("selected");
+      selectedClub = club;
+      startBtn.disabled = false;
+    });
+
+    teamSelect.appendChild(card);
+  });
+}
+
+function showMatchScreen() {
+  menuScreen.classList.remove("active");
+  gameScreen.classList.add("active");
+  initMatch(selectedClub);
+}
+
+function initMatch(club) {
+  const opponent = clubs.find((item) => item.name !== club.name) || clubs[1];
+
+  homeNameEl.textContent = club.name;
+  awayNameEl.textContent = opponent.name;
+
+  gameData = {
+    home: club,
+    away: opponent,
+    homeScore: 0,
+    awayScore: 0,
+    timeLeft: 90,
+    matchRunning: true,
+    lastTimestamp: 0,
+  };
+
+  homeScoreEl.textContent = "0";
+  awayScoreEl.textContent = "0";
+  timerEl.textContent = "90:00";
+
+  buildPlayers(club, opponent);
+  resetBallAndPlayers();
+}
+
+function buildPlayers(homeClub, awayClub) {
+  players.length = 0;
+
   const homePositions = [
     { x: 170, y: 250 },
     { x: 245, y: 170 },
@@ -93,28 +180,26 @@ function buildPlayers() {
     { x: 360, y: 380 },
   ];
 
-  players.length = 0;
-
-  teams.home.roster.forEach((name, index) => {
+  homeClub.roster.forEach((name, index) => {
     players.push({
       team: "home",
       name,
       x: homePositions[index].x,
       y: homePositions[index].y,
       radius: 14,
-      color: teams.home.color,
+      color: homeClub.color,
       control: index === 0,
     });
   });
 
-  teams.away.roster.forEach((name, index) => {
+  awayClub.roster.forEach((name, index) => {
     players.push({
       team: "away",
       name,
       x: awayPositions[index].x,
       y: awayPositions[index].y,
       radius: 14,
-      color: teams.away.color,
+      color: awayClub.color,
       control: false,
     });
   });
@@ -136,7 +221,7 @@ function resetBallAndPlayers() {
     homePlayer.y = 250;
   }
 
-  const awayPlayer = players.find((p) => p.team === "away" && p.name === "Erling Haaland");
+  const awayPlayer = players.find((p) => p.team === "away" && p.name.includes("Haaland"));
   if (awayPlayer) {
     awayPlayer.x = 790;
     awayPlayer.y = 250;
@@ -144,29 +229,31 @@ function resetBallAndPlayers() {
 }
 
 function resetMatch() {
-  game.homeScore = 0;
-  game.awayScore = 0;
-  game.timeLeft = 90;
-  game.matchRunning = true;
+  if (!gameData) return;
+
+  gameData.homeScore = 0;
+  gameData.awayScore = 0;
+  gameData.timeLeft = 90;
+  gameData.matchRunning = true;
 
   homeScoreEl.textContent = "0";
   awayScoreEl.textContent = "0";
   timerEl.textContent = "90:00";
 
-  buildPlayers();
+  buildPlayers(gameData.home, gameData.away);
   resetBallAndPlayers();
 }
 
 function updateTimer() {
-  if (!game.matchRunning) return;
+  if (!gameData || !gameData.matchRunning) return;
 
-  game.timeLeft -= 1 / 60;
-  if (game.timeLeft <= 0) {
-    game.timeLeft = 0;
-    game.matchRunning = false;
+  gameData.timeLeft -= 1 / 60;
+  if (gameData.timeLeft <= 0) {
+    gameData.timeLeft = 0;
+    gameData.matchRunning = false;
   }
 
-  const totalSeconds = Math.max(0, Math.ceil(game.timeLeft));
+  const totalSeconds = Math.max(0, Math.ceil(gameData.timeLeft));
   const mins = Math.floor(totalSeconds / 60);
   const secs = totalSeconds % 60;
   timerEl.textContent = `${mins}:${String(secs).padStart(2, "0")}`;
@@ -189,8 +276,8 @@ function moveControlledPlayer() {
     dx /= length;
     dy /= length;
 
-    player.x += dx * 2.8;
-    player.y += dy * 2.8;
+    player.x += dx * 2.9;
+    player.y += dy * 2.9;
     player.x = clamp(player.x, 30, pitch.width - 30);
     player.y = clamp(player.y, 30, pitch.height - 30);
 
@@ -260,6 +347,8 @@ function updateOpponentAI() {
 }
 
 function updateBall() {
+  if (!gameData) return;
+
   ball.x += ball.vx;
   ball.y += ball.vy;
 
@@ -291,14 +380,14 @@ function updateBall() {
   const insideGoal = ball.y > goalTop && ball.y < goalBottom;
 
   if (ball.x - ball.radius <= 0 && insideGoal) {
-    game.homeScore += 1;
-    homeScoreEl.textContent = game.homeScore;
+    gameData.homeScore += 1;
+    homeScoreEl.textContent = gameData.homeScore;
     resetBallAndPlayers();
   }
 
   if (ball.x + ball.radius >= pitch.width && insideGoal) {
-    game.awayScore += 1;
-    awayScoreEl.textContent = game.awayScore;
+    gameData.awayScore += 1;
+    awayScoreEl.textContent = gameData.awayScore;
     resetBallAndPlayers();
   }
 }
@@ -328,6 +417,70 @@ function drawPitch() {
   ctx.strokeRect(pitch.width - 50, (pitch.height - 110) / 2, 30, 110);
 }
 
+function drawPlayerAvatar(player) {
+  ctx.save();
+  ctx.translate(player.x, player.y);
+
+  ctx.fillStyle = "rgba(0,0,0,0.18)";
+  ctx.beginPath();
+  ctx.ellipse(0, 18, 18, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  const jerseyColor = player.color;
+  const skinTone = "#f2c5a0";
+
+  ctx.fillStyle = skinTone;
+  ctx.beginPath();
+  ctx.arc(0, -18, 11, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#000";
+  ctx.beginPath();
+  ctx.arc(-4, -20, 1.3, 0, Math.PI * 2);
+  ctx.arc(4, -20, 1.3, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = 1.1;
+  ctx.beginPath();
+  ctx.arc(0, -18, 5, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+
+  ctx.fillStyle = jerseyColor;
+  ctx.fillRect(-12, -6, 24, 22);
+  ctx.fillStyle = "rgba(255,255,255,0.18)";
+  ctx.fillRect(-11, -6, 7, 22);
+
+  ctx.strokeStyle = "#0f172a";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(-10, 16);
+  ctx.lineTo(-9, 28);
+  ctx.moveTo(10, 16);
+  ctx.lineTo(9, 28);
+  ctx.moveTo(-12, 0);
+  ctx.lineTo(-22, 12);
+  ctx.moveTo(12, 0);
+  ctx.lineTo(22, 12);
+  ctx.stroke();
+
+  ctx.strokeStyle = "#0f172a";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(-6, 28);
+  ctx.lineTo(-8, 40);
+  ctx.moveTo(6, 28);
+  ctx.lineTo(8, 40);
+  ctx.stroke();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 9px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText(player.name.split(" ")[0], 0, 52);
+
+  ctx.restore();
+}
+
 function drawBall() {
   ctx.beginPath();
   ctx.fillStyle = "#f4f0ea";
@@ -343,19 +496,12 @@ function drawBall() {
 
 function drawPlayers() {
   players.forEach((player) => {
-    ctx.beginPath();
-    ctx.fillStyle = player.color;
-    ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = "#fff";
-    ctx.font = "bold 11px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText(player.name, player.x, player.y - 18);
+    drawPlayerAvatar(player);
   });
 }
 
 function update() {
+  if (!gameData) return;
   moveControlledPlayer();
   updateOpponentAI();
   updateBall();
@@ -368,14 +514,14 @@ function render() {
   drawBall();
 }
 
-function loop(timestamp) {
-  const delta = (timestamp - game.lastTimestamp) / 1000 || 0;
-  game.lastTimestamp = timestamp;
+function gameLoop(timestamp) {
+  if (gameData) {
+    gameData.lastTimestamp = timestamp;
+  }
 
   update();
   render();
-
-  requestAnimationFrame(loop);
+  requestAnimationFrame(gameLoop);
 }
 
 document.addEventListener("keydown", (event) => {
@@ -397,5 +543,10 @@ document.addEventListener("keyup", (event) => {
   keys[key] = false;
 });
 
-resetMatch();
-requestAnimationFrame(loop);
+startBtn.addEventListener("click", () => {
+  if (!selectedClub) return;
+  showMatchScreen();
+});
+
+renderTeams();
+requestAnimationFrame(gameLoop);

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dream League 2026</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="hud">
+        <div class="team team-home">
+          <span class="team-name">Real Madrid</span>
+          <strong id="homeScore">0</strong>
+        </div>
+
+        <div class="center-panel">
+          <div class="match-status">Match Live</div>
+          <div id="timer" class="timer">90:00</div>
+        </div>
+
+        <div class="team team-away">
+          <span class="team-name">Manchester City</span>
+          <strong id="awayScore">0</strong>
+        </div>
+      </header>
+
+      <main class="pitch-wrap">
+        <canvas id="gameCanvas" width="960" height="540"></canvas>
+      </main>
+
+      <div class="controls-bar">
+        <span>Move: W A S D / Arrow Keys</span>
+        <span>Shoot: Space</span>
+        <span>Restart: R</span>
+      </div>
+    </div>
+
+    <script src="game.js"></script>
+  </body>
+</html>

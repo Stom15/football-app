@@ -122,6 +122,38 @@ canvas {
   font-size: 0.9rem;
 }
 
+.setup-panel {
+  margin-top: 20px;
+  padding: 20px 22px;
+  background: rgba(10, 18, 24, 0.82);
+  border: 1px solid var(--panel-border);
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+}
+
+.setup-panel h2 {
+  margin: 0 0 12px;
+  font-size: 1.3rem;
+  color: var(--gold);
+}
+
+.setup-panel p {
+  margin: 0 0 12px;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.setup-panel ul {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.setup-panel li strong {
+  color: var(--text);
+}
+
 @media (max-width: 720px) {
   .hud {
     flex-wrap: wrap;

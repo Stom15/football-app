@@ -8,46 +8,70 @@
   </head>
   <body>
     <div class="app">
-      <header class="hud">
-        <div class="team team-home">
-          <span class="team-name">Real Madrid</span>
-          <strong id="homeScore">0</strong>
-        </div>
-
-        <div class="center-panel">
-          <div class="match-status">Match Live</div>
-          <div id="timer" class="timer">90:00</div>
-        </div>
-
-        <div class="team team-away">
-          <span class="team-name">Manchester City</span>
-          <strong id="awayScore">0</strong>
-        </div>
-      </header>
-
-      <main class="pitch-wrap">
-        <canvas id="gameCanvas" width="960" height="540"></canvas>
-      </main>
-
-      <div class="controls-bar">
-        <span>Move: W A S D / Arrow Keys</span>
-        <span>Shoot: Space</span>
-        <span>Restart: R</span>
+      <div class="title-bar">
+        <div class="brand">Dream League 2026</div>
+        <div class="stadium">Old Trafford • Matchday</div>
       </div>
 
-      <section class="setup-panel" aria-label="Basic soccer setup">
-        <h2>Basic Soccer Setup</h2>
-        <p>
-          To play or host a game of association football (soccer), you need two teams
-          of 11 players, a standard pitch, a ball, and a clear understanding of the
-          core rules and equipment.
-        </p>
-        <ul>
-          <li><strong>Teams:</strong> Two teams of 11 players.</li>
-          <li><strong>Pitch:</strong> A standard football field with proper markings.</li>
-          <li><strong>Equipment:</strong> A regulation football, goal posts, and basic kit.</li>
-          <li><strong>Rules:</strong> Fair play, offside, fouls, scoring, and match timing.</li>
-        </ul>
+      <section class="match-card">
+        <header class="hud">
+          <div class="team team-home">
+            <span class="team-name" id="homeName">Real Madrid</span>
+            <strong id="homeScore">0</strong>
+          </div>
+
+          <div class="center-panel">
+            <div class="match-status">Match Live</div>
+            <div id="timer" class="timer">90:00</div>
+          </div>
+
+          <div class="team team-away">
+            <span class="team-name" id="awayName">Manchester City</span>
+            <strong id="awayScore">0</strong>
+          </div>
+        </header>
+
+        <div class="meta-row">
+          <div class="meta-pill">Preview <strong id="previewMode">High Press</strong></div>
+          <div class="meta-pill">Momentum <strong id="momentumValue">68%</strong></div>
+          <div class="meta-pill">Formation <strong id="formationLabel">4-3-3</strong></div>
+        </div>
+
+        <main class="pitch-wrap">
+          <canvas id="gameCanvas" width="960" height="540"></canvas>
+          <div class="preview-overlay">
+            <div class="preview-badge">Preview</div>
+            <div id="liveCallout">Build-up in midfield</div>
+          </div>
+        </main>
+
+        <div class="controls-row">
+          <button class="action-btn" data-action="pass">Pass</button>
+          <button class="action-btn" data-action="shoot">Shoot</button>
+          <button class="action-btn" data-action="tackle">Tackle</button>
+          <button class="action-btn" data-action="sprint">Sprint</button>
+        </div>
+
+        <div class="footer-grid">
+          <div class="panel">
+            <h3>Action Feed</h3>
+            <ul id="actionFeed">
+              <li>Kick-off in motion</li>
+              <li>Pressing high up the pitch</li>
+              <li>Build-up tempo increasing</li>
+            </ul>
+          </div>
+
+          <div class="panel">
+            <h3>Match Brief</h3>
+            <ul class="brief-list">
+              <li><strong>Teams:</strong> 11 players each</li>
+              <li><strong>Pitch:</strong> Standard football arena</li>
+              <li><strong>Rules:</strong> Modern football standards</li>
+              <li><strong>Goal:</strong> Control possession and finish chances</li>
+            </ul>
+          </div>
+        </div>
       </section>
     </div>
 
